@@ -29,18 +29,18 @@ public class UrlShortController {
 
     @PostMapping
     public ResponseEntity<UrlResponceDto> urlRequest(@RequestBody UrlRequestDto request) {
-        Url urlRequest = service.generateUrl(request.getUrl());
+        Url urlRequest = service.insertUrlDB(request.getUrl());
         var url = UrlResponceDto.builder()
-                .shortUrl(urlRequest.getShortUrl())
+                .shortUrl("http://localhost:8080/" + urlRequest.getShortUrl())
                 .dateTime(urlRequest.getCreatedDateTime())
                 .build();
         return ResponseEntity.ok(url);
     }
 
-    // @GetMapping("/{url}")
-    // public void acessUrl(@PathVariable String url, HttpServletResponse res)
-    // throws IOException {
-    // res.sendRedirect(service.findorgUrl(url));
-    // }
+    @GetMapping("/{url}")
+    public void acessUrl(@PathVariable String url, HttpServletResponse res)
+            throws IOException {
+        res.sendRedirect(service.acessLongUrl(url).getUrl());
+    }
 
 }

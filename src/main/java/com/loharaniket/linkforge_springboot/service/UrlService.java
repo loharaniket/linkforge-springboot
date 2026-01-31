@@ -1,13 +1,17 @@
 package com.loharaniket.linkforge_springboot.service;
 
+import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
+import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 
 import com.loharaniket.linkforge_springboot.model.Url;
 import com.loharaniket.linkforge_springboot.repository.UrlRepo;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -17,35 +21,34 @@ public class UrlService {
     @Autowired
     private final UrlRepo repository;
 
-    public Url generateUrl(String request) {
-        var url = Url.builder()
-        .url(request)
-        .shortUrl(request)
-        .createdDateTime(LocalDateTime.now())
+    private static String createUrlShort(long id) {
+        String encode = Base64.getUrlEncoder().encodeToString(String.valueOf(id).getBytes());
+        return encode;
+    }
+
+    private static long decodeId(String url) {
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] bytes = decoder.decode(url);
+        String decodeValue = new String(bytes);
+        return Long.parseLong(decodeValue);
+    }
+
+    @Transactional
+    public Url insertUrlDB(String request) {
+        var setUrl = Url.builder()
+                .url(request)
+                .shortUrl(request)
+                .createdDateTime(LocalDateTime.now())
                 .build();
-        repository.save(url);
+
+        var url = repository.save(setUrl);
+        url.setShortUrl(createUrlShort(url.getId()));
         return url;
     }
 
-    // public Url processUrl(Url url) throws RuntimeException {
-    //     boolean isExist = repo.findByOrgUrl(url.getOrgUrl()).isPresent();
-    //     if (!isExist) {
-    //         String shortLink = UUID.randomUUID().toString();
-    //         url.setShortUrl(shortLink.substring(0, 6));
-    //         repo.save(url);
-    //     } else {
-    //         Url getExistUrl = repo.findByOrgUrl(url.getOrgUrl()).orElseThrow(() -> new RuntimeException());
-    //         url.setShortUrl(getExistUrl.getShortUrl());
-    //         url.setId(getExistUrl.getId());
-    //     }
-    //     return url;
-    // }
-
-    // public String findorgUrl(String shortUrl) {
-    //     Url findUrl = repo.findByShortUrl(shortUrl).orElse(new Url());
-    //     if (findUrl.getShortUrl() != null || findUrl.getOrgUrl() != null) {
-    //         return findUrl.getOrgUrl();
-    //     }
-    //     return "http://localhost:8080/";
-    // }
+    public Url acessLongUrl(String request) {
+        var url = repository.findById(decodeId(request))
+                .orElseThrow(() -> new ResourceAccessException("not found url"));
+        return url;
+    }
 }

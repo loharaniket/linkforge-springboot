@@ -24,8 +24,9 @@ public class Url {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id" , nullable = false , unique = true)
     private Long id;
+    @Column(name = "long_url")
     private String url;
-    @Column(name = "short_url", nullable = false, unique = true)
+    @Column(name = "short_url")
     private String shortUrl;
     private LocalDateTime createdDateTime;
 
