@@ -4,9 +4,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.loharaniket.linkforge_springboot.dto.UrlRequestDto;
 import com.loharaniket.linkforge_springboot.dto.UrlResponceDto;
+import com.loharaniket.linkforge_springboot.model.Url;
 import com.loharaniket.linkforge_springboot.service.UrlService;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -19,28 +21,26 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-public class HomeController {
+@AllArgsConstructor
+public class UrlShortController {
 
     @Autowired
-    private UrlService service;
+    private final UrlService service;
 
-    @GetMapping("/")
-    public String home() {
-        return "<h1>Welcome to LinkForge</h1>";
-    }
-
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<UrlResponceDto> urlRequest(@RequestBody UrlRequestDto request) {
+        Url urlRequest = service.generateUrl(request.getUrl());
         var url = UrlResponceDto.builder()
-                .shortUrl(request.getUrl())
-                .dateTime(LocalDateTime.now())
+                .shortUrl(urlRequest.getShortUrl())
+                .dateTime(urlRequest.getCreatedDateTime())
                 .build();
         return ResponseEntity.ok(url);
     }
 
-    @GetMapping("/{url}")
-    public void acessUrl(@PathVariable String url, HttpServletResponse res) throws IOException {
-        res.sendRedirect(service.findorgUrl(url));
-    }
+    // @GetMapping("/{url}")
+    // public void acessUrl(@PathVariable String url, HttpServletResponse res)
+    // throws IOException {
+    // res.sendRedirect(service.findorgUrl(url));
+    // }
 
 }
